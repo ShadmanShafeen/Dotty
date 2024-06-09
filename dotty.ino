@@ -4,9 +4,10 @@
 int DIN = 7;
 int CLK = 6;
 int CS = 5;
-int matNum = 1;
+byte matNum = 1;
 
-String direction = "ltr";
+String hDirection = "right";
+String vDirection = "up";
 
 byte buffer[20];
 char text[] = "a";
@@ -15,53 +16,103 @@ MaxMatrix m(DIN, CS, CLK, matNum);
 
 void setup() {
   m.init();
-  m.setIntensity(8);
+  m.setIntensity(5);
 }
 
 void loop() {
-  int i=0;
-
+  int x=0;
+  int y=0;
   while(true)
   {
-    if(direction == "ltr") {
-      if(i > 7) {
+    if(hDirection == "right") {
+      if(x > 7) {
         matNum = matNum+1;
         m.setMatNum(matNum);
-        i=0;
+        x=0;
       }
-      if(i == 6 && matNum == 4) {
-           direction = "rtl";
+      if(x == 6 && matNum == 4) {
+           hDirection = "left";
       }
-      moveRight(i);
+
+      if(y == 7) {
+        vDirection = "down";
+      }
+      if(y == 0) {
+        vDirection = "up";
+      }
+      if(vDirection == "up") moveUpRight(x,y);
+      else moveDownRight(x,y);
     }
 
-    else if(direction == "rtl") {
-      if(i < 0) {
+    else if(hDirection == "left") {
+      if(x < 0) {
         matNum = matNum-1;
         m.setMatNum(matNum);
-        i=7;
+        x=7;
       }
-      if(i == 1 && matNum == 1) {
-          direction = "ltr";
+      if(x == 1 && matNum == 1) {
+          hDirection = "right";
       }
-      moveLeft(i);
+
+      if(y == 7) {
+        vDirection = "down";
+      }
+      if(y == 0) {
+        vDirection = "up";
+      }
+      if(vDirection == "up") moveUpLeft(x,y);
+      else moveDownLeft(x,y);
     }
   }
   m.clear();
 }
 
-void moveRight(int& i)
+void moveRight(int& x, int y)
 {
-  m.setDot(4, i, true);  
+  m.setDot(y, x, true);  
     delay(200);
     m.clear();
-    ++i;
+    ++x;
 }
 
-void moveLeft(int& i)
+void moveLeft(int& x, int y)
 {
-  m.setDot(4, i, true);
-  delay(200);
-  m.clear();
-  --i;
+  m.setDot(y, x, true);
+    delay(200);
+    m.clear();
+    --x;
+}
+
+void moveUpRight(int& x, int& y)
+{
+  m.setDot(y, x, true);
+    delay(200);
+    m.clear();
+    ++y;
+    ++x;
+}
+void moveDownRight(int& x, int& y)
+{
+  m.setDot(y, x, true);
+    delay(200);
+    m.clear();
+    --y;
+    ++x;
+}
+
+void moveUpLeft(int& x, int& y)
+{
+  m.setDot(y, x, true);
+    delay(200);
+    m.clear();
+    ++y;
+    --x;
+}
+void moveDownLeft(int& x, int& y)
+{
+  m.setDot(y, x, true);
+    delay(200);
+    m.clear();
+    --y;
+    --x;
 }
