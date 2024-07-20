@@ -13,8 +13,11 @@ byte matNum = 1;
 String hDirection = "right";
 String vDirection = "up";
 String ballPath = "horizontal";
+
 int initialDelay = 50;
-int _delay = 100;
+int _delay = initialDelay;
+int speedUpFactor = 5;
+
 const int ps = 3;
 int lip = 3;
 int rip = 3;
@@ -58,13 +61,15 @@ void loop() {
     checkPaddleHitPoint(x , y);
     bool pointUpdated = checkIfPointScored(x, y);
     if (pointUpdated) {
+      _delay = initialDelay;
       for (int i = 0; i <= 3; i++) {
         clear8x8DotMatrix(current32, i);
       }
-      
       lightLED(current32, matNum, x, y);
-      // makeBothPaddles();
       delay(2000);
+      for (int i = 0; i <= 3; i++) {
+        clear8x8DotMatrix(current32, i);
+      }
       x = 4;
       y = 0;
       matNum = 1;
@@ -75,9 +80,9 @@ void loop() {
         matNum = matNum + 1;
         y = 7;
       }
-      if ((y == 1 && matNum == 3)) {
-        hDirection = "left";
-      }
+      // if ((y == 1 && matNum == 3)) {
+      //   hDirection = "left";
+      // }
 
       if (x == 7) {
         vDirection = "down";
@@ -95,8 +100,7 @@ void loop() {
       }
       else {
         moveRight(x,y);
-      }
-      
+      } 
     }
 
     else if (hDirection == "left") {
@@ -104,9 +108,9 @@ void loop() {
         matNum = matNum - 1;
         y = 0;
       }
-      if (y == 6 && matNum == 0) {
-        hDirection = "right";
-      }
+      // if (y == 6 && matNum == 0) {
+      //   hDirection = "right";
+      // }
 
       if (x == 7) {
         vDirection = "down";
@@ -118,7 +122,7 @@ void loop() {
         if (vDirection == "up"){
           moveUpLeft(x, y);
         } 
-          else {
+        else {
           moveDownLeft(x, y);
         } 
       } 
@@ -130,21 +134,6 @@ void loop() {
 
     // clear8x8DotMatrix(current32, matNum);
   }
-}
-
-void lightLED(int _ledNo, int matNum, int x, int y) {
-  if (_ledNo == 1) lc.setLed(matNum, x, y, true);
-  else lc2.setLed(matNum, x, y, true);
-}
-
-void clearLED(int _ledNo, int matNum , int x , int y) {
-  if (_ledNo == 1) lc.setLed(matNum, x, y, false);
-  else lc2.setLed(matNum, x, y, false); 
-}
-
-void clear8x8DotMatrix(int _ledNo, int matNum) {
-  if (_ledNo == 1) lc.clearDisplay(matNum);
-  else lc2.clearDisplay(matNum);
 }
 
 void moveRight(int& x, int& y)
@@ -276,6 +265,60 @@ bool checkIfPointScored(int x, int y) {
   return false;
 }
 
+void checkPaddleHitPoint(int x , int y) {
+  if ((matNum == 3 && y == 0 && (x >= rip || x < rip + ps))) {
+    hDirection = "left";
+    if ((x == rip + 1)) {
+      ballPath = "horizontal";
+    }
+    else {
+      ballPath = "diagonal";
+      if(x == rip + 2) {
+        vDirection = "up";
+      }
+      else if (x == rip) {
+        vDirection = "down";
+      }
+    }
+    if (_delay - speedUpFactor > 0) {
+      _delay -= speedUpFactor;
+    }
+  }
+  if ((matNum == 0 && y == 7 && (x >= lip || x < lip + ps))) {
+    hDirection = "right";
+    if ((x == lip + 1)) {
+      ballPath = "horizontal";
+    }
+    else {
+      ballPath = "diagonal";
+      if(x == lip + 2) {
+        vDirection = "up";
+      }
+      else if (x == lip) {
+        vDirection = "down";
+      }
+    }
+    if (_delay - speedUpFactor > 0) {
+      _delay -= speedUpFactor;
+    }
+  }
+}
+
+void lightLED(int _ledNo, int matNum, int x, int y) {
+  if (_ledNo == 1) lc.setLed(matNum, x, y, true);
+  else lc2.setLed(matNum, x, y, true);
+}
+
+void clearLED(int _ledNo, int matNum , int x , int y) {
+  if (_ledNo == 1) lc.setLed(matNum, x, y, false);
+  else lc2.setLed(matNum, x, y, false); 
+}
+
+void clear8x8DotMatrix(int _ledNo, int matNum) {
+  if (_ledNo == 1) lc.clearDisplay(matNum);
+  else lc2.clearDisplay(matNum);
+}
+
 void turnOnLeds() {
   lc.shutdown(0, false);
   lc.shutdown(1, false);
@@ -295,41 +338,4 @@ void turnOnLeds() {
 
   // lc2.setIntensity(0, 8);
   // lc2.clearDisplay(0);
-}
-
-void printGoal() {
-
-}
-
-void checkPaddleHitPoint(int x , int y) {
-  if ( (matNum == 3 && y == 0 && (x >= rip || x < rip + ps))  ) {
-    if ((x == rip + 1)) {
-      ballPath = "horizontal";
-    }
-    else {
-      ballPath = "diagonal";
-      if(x == rip + 2) {
-        vDirection = "up";
-      }
-      else if (x == rip) {
-        vDirection = "down";
-      }
-    }
-    _delay--;
-  }
-  if ((matNum == 0 && y == 7 && (x >= lip || x < lip + ps))) {
-    if ((x == lip + 1)) {
-      ballPath = "horizontal";
-    }
-    else {
-      ballPath = "diagonal";
-      if(x == lip + 2) {
-        vDirection = "up";
-      }
-      else if (x == lip) {
-        vDirection = "down";
-      }
-    }
-    _delay--;
-  }
 }
