@@ -9,7 +9,7 @@ const int dataIn = 7;  // Data In
 const int clk = 6;     // Clock
 const int cs = 5;      // Chip Select
 const int cs2 = 4;
-byte matNum = 1;
+byte matNum = 1;      //  CURRENT 8X8 DOT MATRIX
 String hDirection = "right";
 String vDirection = "up";
 String ballPath = "horizontal";
@@ -18,9 +18,9 @@ int initialDelay = 50;
 int _delay = initialDelay;
 int speedUpFactor = 5;
 
-const int ps = 3;
-int lip = 3;
-int rip = 3;
+const int paddleSize = 3;        
+int leftPaddleStartX = 3;     //  LEFT PADDLE'S INITIAL X (ROW) VALUE      
+int righttPaddleStartX = 3;   //  RIGHT PADDLE'S INITIAL X (ROW) VALUE
 int current32 = 1;  // 1 is the one with yellow cs pin
 
 int P1Score = 0;
@@ -35,17 +35,24 @@ int P2Score = 0;
 LedControl lc = LedControl(dataIn, clk, cs, 4);  // (DataIn, CLK, CS, number of devices)
 LedControl lc2 = LedControl(dataIn, clk, cs2, 4);
 
+            // BALL COORDINATES
+int x = 4;  // ROW
+int y = 0;  // COLUMN
+
+
 void setup() {
 
   turnOnLeds();
   Serial.begin(9600);
   Serial.println("Start");
+  lightLED(current32 , matNum , 4 , 0);
+  delay(1000);
+  makeBothPaddles();
+  delay(1000);
 }
 
 void loop() {
-  int x = 4;
-  int y = 4;
-
+  
   while (true) {
     // clear8x8DotMatrix(2, 0);
     // delay(_delay);
@@ -58,8 +65,8 @@ void loop() {
     // makeBothPaddles();
     moveLeftBat(H1);
     moveRightBat(H2);
-    checkPaddleHitPoint(x , y);
-    bool pointUpdated = checkIfPointScored(x, y);
+    checkPaddleHitPoint();
+    bool pointUpdated = checkIfPointScored();
     if (pointUpdated) {
       _delay = initialDelay;
       for (int i = 0; i <= 3; i++) {
@@ -185,66 +192,66 @@ void moveDownLeft(int& x, int& y) {
 }
 
 
-// void makeBothPaddles() {
+void makeBothPaddles() {
 
-//   for (int i = lip; i < lip + ps; i++) {
-//     int temp = 7;
-//     lightLED(current32, 0, i, temp);
-//   }
-//   for (int i = rip; i < rip + ps; i++) {
-//     int temp = 0;
-//     lightLED(current32, 3, i, temp);
-//   }
-// }
+  for (int i = leftPaddleStartX; i < leftPaddleStartX + paddleSize; i++) {
+    int temp = 7;
+    lightLED(current32, 0, i, temp);
+  }
+  for (int i = righttPaddleStartX; i < righttPaddleStartX + paddleSize; i++) {
+    int temp = 0;
+    lightLED(current32, 3, i, temp);
+  }
+}
 
 void moveLeftBat(int H1) {
-  if (H1 > 0 && H1 < 100) {
-    if (lip > 0) {
-      clearLED(current32 , 0 , lip + 2 , 7);
-      lip = lip - 1;
+  if (H1 > 0 && H1 < 450) {
+    if (leftPaddleStartX > 0) {
+      clearLED(current32 , 0 , leftPaddleStartX + 2 , 7);
+      leftPaddleStartX = leftPaddleStartX - 1;
     }
   }
   if (H1 > 650 && H1 < 1032) {
-    if (lip < 5) {
-      clearLED(current32 , 0 , lip , 7);
-      lip = lip + 1;
+    if (leftPaddleStartX < 5) {
+      clearLED(current32 , 0 , leftPaddleStartX , 7);
+      leftPaddleStartX = leftPaddleStartX + 1;
     }
   }
   //  MAKE LEFT PADDLE
-  for (int i = lip; i < lip + ps; i++) {
+  for (int i = leftPaddleStartX; i < leftPaddleStartX + paddleSize; i++) {
     int temp = 7;
     lightLED(current32, 0, i, temp);
   }
 }
 
 void moveRightBat(int H2) {
-  if (H2 > 0 && H2 < 100) {
-    if (rip > 0) {
-      clearLED(current32 , 3 , rip + 2 , 0);
-      rip = rip - 1;
+  if (H2 > 0 && H2 < 450) {
+    if (righttPaddleStartX > 0) {
+      clearLED(current32 , 3 , righttPaddleStartX + 2 , 0);
+      righttPaddleStartX = righttPaddleStartX - 1;
     }
   }
   if (H2 > 650 && H2 < 1032) {
-    if (rip < 5) {
-      clearLED(current32 , 3 , rip , 0);
-      rip = rip + 1;
+    if (righttPaddleStartX < 5) {
+      clearLED(current32 , 3 , righttPaddleStartX , 0);
+      righttPaddleStartX = righttPaddleStartX + 1;
     }
   }
   //  MAKE RIGHT PADDLE
-  for (int i = rip; i < rip + ps; i++) {
+  for (int i = righttPaddleStartX; i < righttPaddleStartX + paddleSize; i++) {
     int temp = 0;
     lightLED(current32, 3, i, temp);
   }
 }
 
-bool checkIfPointScored(int x, int y) {
+bool checkIfPointScored() {
   //P1 Score Update
   int temp1 = P1Score, temp2 = P2Score;
-  if (matNum == 3 && y == 0 && (x < rip || x >= rip + ps)) {
+  if (matNum == 3 && y == 0 && (x < righttPaddleStartX || x >= righttPaddleStartX + paddleSize)) {
     P1Score++;
   }
   //P2 Score Update
-  if (matNum == 0 && y == 7 && (x < lip || x >= lip + ps)) {
+  if (matNum == 0 && y == 7 && (x < leftPaddleStartX || x >= leftPaddleStartX + paddleSize)) {
     P2Score++;
   }
   if (temp1 != P1Score) {
@@ -265,18 +272,18 @@ bool checkIfPointScored(int x, int y) {
   return false;
 }
 
-void checkPaddleHitPoint(int x , int y) {
-  if ((matNum == 3 && y == 0 && (x >= rip || x < rip + ps))) {
+void checkPaddleHitPoint() {
+  if ((matNum == 3 && y == 0 && (x >= righttPaddleStartX || x < righttPaddleStartX + paddleSize))) {
     hDirection = "left";
-    if ((x == rip + 1)) {
+    if ((x == righttPaddleStartX + 1)) {
       ballPath = "horizontal";
     }
     else {
       ballPath = "diagonal";
-      if(x == rip + 2) {
+      if(x == righttPaddleStartX + 2) {
         vDirection = "up";
       }
-      else if (x == rip) {
+      else if (x == righttPaddleStartX) {
         vDirection = "down";
       }
     }
@@ -284,17 +291,17 @@ void checkPaddleHitPoint(int x , int y) {
       _delay -= speedUpFactor;
     }
   }
-  if ((matNum == 0 && y == 7 && (x >= lip || x < lip + ps))) {
+  if ((matNum == 0 && y == 7 && (x >= leftPaddleStartX || x < leftPaddleStartX + paddleSize))) {
     hDirection = "right";
-    if ((x == lip + 1)) {
+    if ((x == leftPaddleStartX + 1)) {
       ballPath = "horizontal";
     }
     else {
       ballPath = "diagonal";
-      if(x == lip + 2) {
+      if(x == leftPaddleStartX + 2) {
         vDirection = "up";
       }
-      else if (x == lip) {
+      else if (x == leftPaddleStartX) {
         vDirection = "down";
       }
     }
@@ -302,6 +309,23 @@ void checkPaddleHitPoint(int x , int y) {
       _delay -= speedUpFactor;
     }
   }
+}
+
+void resetGame () {
+  for(int i = 0 ; i <= 3 ; i++) {
+    clear8x8DotMatrix(current32 , i);
+  }
+  P1Score = 0;
+  P2Score = 0;
+  x = 4;
+  y = 0;
+  matNum = 1;
+  lightLED(current32 , matNum , x , y);
+  delay(1000);
+}
+
+void pauseGame () {
+  
 }
 
 void lightLED(int _ledNo, int matNum, int x, int y) {
