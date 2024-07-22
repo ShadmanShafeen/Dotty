@@ -41,14 +41,10 @@ int y = 0;  // COLUMN
 
 
 void setup() {
-
   turnOnLeds();
   Serial.begin(9600);
   Serial.println("Start");
-  lightLED(current32 , matNum , 4 , 0);
-  delay(1000);
-  makeBothPaddles();
-  delay(1000);
+  initialAnimation(50 , 3);
 }
 
 void loop() {
@@ -265,10 +261,6 @@ bool checkIfPointScored() {
     Serial.println(P2Score);
     return true;
   }
-
-  if (temp1 != P1Score || temp2 != P2Score) {
-    _delay = initialDelay;
-  }
   return false;
 }
 
@@ -324,8 +316,37 @@ void resetGame () {
   delay(1000);
 }
 
-void pauseGame () {
-  
+void pauseGame (bool gamePaused) {
+  while (gamePaused){
+
+  }
+}
+
+void initialAnimation (int iADelay , int count) {
+  int initialAnimationDelay = iADelay;
+  int pulseCount = count;
+  for(int pc = 1 ; pc <= pulseCount ; pc++) {
+    for(int i=8 ; i>=0 ; i--) {
+      lc.setIntensity(0, i);
+      lc.setIntensity(1, i);
+      lc.setIntensity(2, i);
+      lc.setIntensity(3, i);
+      lightLED(current32 , matNum , 4 , 0);
+      delay(initialAnimationDelay);
+      makeBothPaddles();
+      delay(initialAnimationDelay);
+    }
+    for(int i=0 ; i<=8 ; i++) {
+      lc.setIntensity(0, i);
+      lc.setIntensity(1, i);
+      lc.setIntensity(2, i);
+      lc.setIntensity(3, i);
+      lightLED(current32 , matNum , 4 , 0);
+      delay(initialAnimationDelay);
+      makeBothPaddles();
+      delay(initialAnimationDelay);
+    }
+  }
 }
 
 void lightLED(int _ledNo, int matNum, int x, int y) {
