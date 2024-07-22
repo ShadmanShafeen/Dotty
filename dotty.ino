@@ -9,19 +9,12 @@ const int dataIn = 7;  // Data In
 const int clk = 6;     // Clock
 const int cs = 5;      // Chip Select
 const int cs2 = 4;
-byte matNum = 1;      //  CURRENT 8X8 DOT MATRIX
-String hDirection = "right";
-String vDirection = "up";
-String ballPath = "horizontal";
 
 int initialDelay = 50;
 int _delay = initialDelay;
 int speedUpFactor = 5;
 
-const int paddleSize = 3;        
-int leftPaddleStartX = 3;     //  LEFT PADDLE'S INITIAL X (ROW) VALUE      
-int righttPaddleStartX = 3;   //  RIGHT PADDLE'S INITIAL X (ROW) VALUE
-int current32 = 1;  // 1 is the one with yellow cs pin
+// int current32 = 1;  // 1 is the one with yellow cs pin
 
 int P1Score = 0;
 int P2Score = 0;
@@ -32,14 +25,21 @@ int P2Score = 0;
 #define JV2 A3
 
 // Create a new LedControl object
-LedControl lc = LedControl(dataIn, clk, cs, 4);  // (DataIn, CLK, CS, number of devices)
+LedControl lc1 = LedControl(dataIn, clk, cs, 4);  // (DataIn, CLK, CS, number of devices)
 LedControl lc2 = LedControl(dataIn, clk, cs2, 4);
 
-            // BALL COORDINATES
-int x = 4;  // ROW
+//                                          BALL INITIAL COORDINATES
+int x = 7;  // ROW
 int y = 0;  // COLUMN
+byte matNum = 1;      //  CURRENT 8X8 DOT MATRIX
+String hDirection = "right";
+String vDirection = "up";
+String ballPath = "horizontal";
 
-
+//                                          PADDLE INITIAL VALUES
+const int paddleSize = 5;        
+int leftPaddleStartX = 5;     //  LEFT PADDLE'S INITIAL X (ROW) VALUE      
+int rightPaddleStartX = 5;   //  RIGHT PADDLE'S INITIAL X (ROW) VALUE
 void setup() {
   turnOnLeds();
   Serial.begin(9600);
@@ -50,9 +50,6 @@ void setup() {
 void loop() {
   
   while (true) {
-    // clear8x8DotMatrix(2, 0);
-    // delay(_delay);
-    // lightLED(2, 0, x, y);
     int H1 = analogRead(JH1);
     int V1 = analogRead(JV1);
     int H2 = analogRead(JH2);
@@ -62,18 +59,16 @@ void loop() {
     moveLeftBat(H1);
     moveRightBat(H2);
     checkPaddleHitPoint();
+    
+    //  CHECK IF POINT SCORED
     bool pointUpdated = checkIfPointScored();
     if (pointUpdated) {
       _delay = initialDelay;
-      for (int i = 0; i <= 3; i++) {
-        clear8x8DotMatrix(current32, i);
-      }
-      lightLED(current32, matNum, x, y);
+      clearDisplay();
+      lightLED(matNum, x, y);
       delay(2000);
-      for (int i = 0; i <= 3; i++) {
-        clear8x8DotMatrix(current32, i);
-      }
-      x = 4;
+      clearDisplay();
+      x = 7;
       y = 0;
       matNum = 1;
       ballPath = "horizontal";
@@ -87,11 +82,11 @@ void loop() {
       //   hDirection = "left";
       // }
 
-      if (x == 7) {
-        vDirection = "down";
-      }
-      if (x == 0) {
+      if(x == 1) {
         vDirection = "up";
+      }
+      if(x == 14) {
+        vDirection = "down";
       }
       if (ballPath == "diagonal") {
         if (vDirection == "up") {
@@ -115,12 +110,13 @@ void loop() {
       //   hDirection = "right";
       // }
 
-      if (x == 7) {
-        vDirection = "down";
-      }
-      if (x == 0) {
+      if(x == 1) {
         vDirection = "up";
       }
+      if(x == 14) {
+        vDirection = "down";
+      }
+      
       if (ballPath == "diagonal") {
         if (vDirection == "up"){
           moveUpLeft(x, y);
@@ -134,55 +130,53 @@ void loop() {
       }
       
     }
-
-    // clear8x8DotMatrix(current32, matNum);
   }
 }
 
 void moveRight(int& x, int& y)
 {
-  lightLED(current32, matNum, x, y);
+  lightLED(matNum, x, y);
   delay(_delay);
-  clear8x8DotMatrix(current32, matNum);
+  clearLED(matNum, x, y);
   --y;
 }
 
 void moveLeft(int& x, int& y)
 {
-  lightLED(current32, matNum, x, y);
+  lightLED(matNum, x, y);
   delay(_delay);
-  clear8x8DotMatrix(current32, matNum);
+  clearLED(matNum, x, y);
   ++y;
 }
 
 void moveUpRight(int& x, int& y) {
-  lightLED(current32, matNum, x, y);
+  lightLED(matNum, x, y);
   delay(_delay);
-  clear8x8DotMatrix(current32, matNum);
+  clearLED(matNum, x, y);
   --y;
   ++x;
 }
 
 void moveDownRight(int& x, int& y) {
-  lightLED(current32, matNum, x, y);
+  lightLED(matNum, x, y);
   delay(_delay);
-  clear8x8DotMatrix(current32, matNum);
+  clearLED(matNum, x, y);
   --y;
   --x;
 }
 
 void moveUpLeft(int& x, int& y) {
-  lightLED(current32, matNum, x, y);
+  lightLED(matNum, x, y);
   delay(_delay);
-  clear8x8DotMatrix(current32, matNum);
+  clearLED(matNum, x, y);
   ++y;
   ++x;
 }
 
 void moveDownLeft(int& x, int& y) {
-  lightLED(current32, matNum, x, y);
+  lightLED(matNum, x, y);
   delay(_delay);
-  clear8x8DotMatrix(current32, matNum);
+  clearLED(matNum, x, y);
   ++y;
   --x;
 }
@@ -192,58 +186,58 @@ void makeBothPaddles() {
 
   for (int i = leftPaddleStartX; i < leftPaddleStartX + paddleSize; i++) {
     int temp = 7;
-    lightLED(current32, 0, i, temp);
+    lightLED(0, i, temp);
   }
-  for (int i = righttPaddleStartX; i < righttPaddleStartX + paddleSize; i++) {
+  for (int i = rightPaddleStartX; i < rightPaddleStartX + paddleSize; i++) {
     int temp = 0;
-    lightLED(current32, 3, i, temp);
+    lightLED(3, i, temp);
   }
 }
 
 void moveLeftBat(int H1) {
   if (H1 > 0 && H1 < 450) {
     if (leftPaddleStartX > 0) {
-      clearLED(current32 , 0 , leftPaddleStartX + 2 , 7);
+      clearLED(0 , leftPaddleStartX + paddleSize - 1 , 7);
       leftPaddleStartX = leftPaddleStartX - 1;
     }
   }
   if (H1 > 650 && H1 < 1032) {
-    if (leftPaddleStartX < 5) {
-      clearLED(current32 , 0 , leftPaddleStartX , 7);
+    if (leftPaddleStartX < 15 - (paddleSize - 1)) {
+      clearLED(0 , leftPaddleStartX , 7);
       leftPaddleStartX = leftPaddleStartX + 1;
     }
   }
   //  MAKE LEFT PADDLE
   for (int i = leftPaddleStartX; i < leftPaddleStartX + paddleSize; i++) {
     int temp = 7;
-    lightLED(current32, 0, i, temp);
+    lightLED(0, i, temp);
   }
 }
 
 void moveRightBat(int H2) {
   if (H2 > 0 && H2 < 450) {
-    if (righttPaddleStartX > 0) {
-      clearLED(current32 , 3 , righttPaddleStartX + 2 , 0);
-      righttPaddleStartX = righttPaddleStartX - 1;
+    if (rightPaddleStartX > 0) {
+      clearLED(3 , rightPaddleStartX + paddleSize - 1 , 0);
+      rightPaddleStartX = rightPaddleStartX - 1;
     }
   }
   if (H2 > 650 && H2 < 1032) {
-    if (righttPaddleStartX < 5) {
-      clearLED(current32 , 3 , righttPaddleStartX , 0);
-      righttPaddleStartX = righttPaddleStartX + 1;
+    if (rightPaddleStartX < 15 - (paddleSize - 1)) {
+      clearLED(3 , rightPaddleStartX , 0);
+      rightPaddleStartX = rightPaddleStartX + 1;
     }
   }
   //  MAKE RIGHT PADDLE
-  for (int i = righttPaddleStartX; i < righttPaddleStartX + paddleSize; i++) {
+  for (int i = rightPaddleStartX; i < rightPaddleStartX + paddleSize; i++) {
     int temp = 0;
-    lightLED(current32, 3, i, temp);
+    lightLED(3, i, temp);
   }
 }
 
 bool checkIfPointScored() {
   //P1 Score Update
   int temp1 = P1Score, temp2 = P2Score;
-  if (matNum == 3 && y == 0 && (x < righttPaddleStartX || x >= righttPaddleStartX + paddleSize)) {
+  if (matNum == 3 && y == 0 && (x < rightPaddleStartX || x >= rightPaddleStartX + paddleSize)) {
     P1Score++;
   }
   //P2 Score Update
@@ -265,17 +259,17 @@ bool checkIfPointScored() {
 }
 
 void checkPaddleHitPoint() {
-  if ((matNum == 3 && y == 0 && (x >= righttPaddleStartX || x < righttPaddleStartX + paddleSize))) {
+  if ((matNum == 3 && y == 0 && (x >= rightPaddleStartX || x < rightPaddleStartX + paddleSize))) {
     hDirection = "left";
-    if ((x == righttPaddleStartX + 1)) {
+    if ( (x >= rightPaddleStartX + 1) &&  (x <= rightPaddleStartX + (paddleSize-2))) {
       ballPath = "horizontal";
     }
     else {
       ballPath = "diagonal";
-      if(x == righttPaddleStartX + 2) {
+      if(x == rightPaddleStartX + (paddleSize-1)) {
         vDirection = "up";
       }
-      else if (x == righttPaddleStartX) {
+      else if (x == rightPaddleStartX) {
         vDirection = "down";
       }
     }
@@ -285,12 +279,12 @@ void checkPaddleHitPoint() {
   }
   if ((matNum == 0 && y == 7 && (x >= leftPaddleStartX || x < leftPaddleStartX + paddleSize))) {
     hDirection = "right";
-    if ((x == leftPaddleStartX + 1)) {
+    if ((x >= leftPaddleStartX + 1) && (x <= leftPaddleStartX + (paddleSize-2))) {
       ballPath = "horizontal";
     }
     else {
       ballPath = "diagonal";
-      if(x == leftPaddleStartX + 2) {
+      if(x == leftPaddleStartX + (paddleSize-1)) {
         vDirection = "up";
       }
       else if (x == leftPaddleStartX) {
@@ -304,15 +298,13 @@ void checkPaddleHitPoint() {
 }
 
 void resetGame () {
-  for(int i = 0 ; i <= 3 ; i++) {
-    clear8x8DotMatrix(current32 , i);
-  }
+  clearDisplay();
   P1Score = 0;
   P2Score = 0;
   x = 4;
   y = 0;
   matNum = 1;
-  lightLED(current32 , matNum , x , y);
+  lightLED(matNum , x , y);
   delay(1000);
 }
 
@@ -327,21 +319,29 @@ void initialAnimation (int iADelay , int count) {
   int pulseCount = count;
   for(int pc = 1 ; pc <= pulseCount ; pc++) {
     for(int i=8 ; i>=0 ; i--) {
-      lc.setIntensity(0, i);
-      lc.setIntensity(1, i);
-      lc.setIntensity(2, i);
-      lc.setIntensity(3, i);
-      lightLED(current32 , matNum , 4 , 0);
+      lc1.setIntensity(0, i);
+      lc1.setIntensity(1, i);
+      lc1.setIntensity(2, i);
+      lc1.setIntensity(3, i);
+      lc2.setIntensity(0, i);
+      lc2.setIntensity(1, i);
+      lc2.setIntensity(2, i);
+      lc2.setIntensity(3, i);
+      lightLED(matNum , 7 , 0);
       delay(initialAnimationDelay);
       makeBothPaddles();
       delay(initialAnimationDelay);
     }
     for(int i=0 ; i<=8 ; i++) {
-      lc.setIntensity(0, i);
-      lc.setIntensity(1, i);
-      lc.setIntensity(2, i);
-      lc.setIntensity(3, i);
-      lightLED(current32 , matNum , 4 , 0);
+      lc1.setIntensity(0, i);
+      lc1.setIntensity(1, i);
+      lc1.setIntensity(2, i);
+      lc1.setIntensity(3, i);
+      lc2.setIntensity(0, i);
+      lc2.setIntensity(1, i);
+      lc2.setIntensity(2, i);
+      lc2.setIntensity(3, i);
+      lightLED(matNum , 7 , 0);
       delay(initialAnimationDelay);
       makeBothPaddles();
       delay(initialAnimationDelay);
@@ -349,37 +349,72 @@ void initialAnimation (int iADelay , int count) {
   }
 }
 
-void lightLED(int _ledNo, int matNum, int x, int y) {
-  if (_ledNo == 1) lc.setLed(matNum, x, y, true);
-  else lc2.setLed(matNum, x, y, true);
+void lightLED(int matNum, int x, int y) {
+
+  //                        DOT MATRIX 1
+  if (x >= 0 && x <= 7) {
+    lc1.setLed(matNum, x, y, true);
+  }
+  //                        DOT MATRIX 2
+  else if (x >=8 && x <=15) {
+    x -= 8;
+    lc2.setLed(matNum, x, y, true);
+  }
+  // if (_ledNo == 1) lc1.setLed(matNum, x, y, true);
+  // else lc2.setLed(matNum, x, y, true);
 }
 
-void clearLED(int _ledNo, int matNum , int x , int y) {
-  if (_ledNo == 1) lc.setLed(matNum, x, y, false);
-  else lc2.setLed(matNum, x, y, false); 
+void clearLED(int matNum , int x , int y) {
+  
+  //                        DOT MATRIX 1
+  if (x >= 0 && x <= 7) {
+    lc1.setLed(matNum, x, y, false);
+  }
+  //                        DOT MATRIX 2
+  else if (x >=8 && x <= 15) {
+    x -= 8;
+    lc2.setLed(matNum, x, y, false);
+  }
+  // if (_ledNo == 1) lc1.setLed(matNum, x, y, false);
+  // else lc2.setLed(matNum, x, y, false); 
 }
 
 void clear8x8DotMatrix(int _ledNo, int matNum) {
-  if (_ledNo == 1) lc.clearDisplay(matNum);
+  if (_ledNo == 1) lc1.clearDisplay(matNum);
   else lc2.clearDisplay(matNum);
 }
 
+void clearDisplay() {
+  for (int i=0 ; i<=3 ; i++) {
+    lc1.clearDisplay(i);
+    lc2.clearDisplay(i);
+  }
+}
+
 void turnOnLeds() {
-  lc.shutdown(0, false);
-  lc.shutdown(1, false);
-  lc.shutdown(2, false);
-  lc.shutdown(3, false);
+  lc1.shutdown(0, false);
+  lc1.shutdown(1, false);
+  lc1.shutdown(2, false);
+  lc1.shutdown(3, false);
 
-  // lc2.shutdown(0, false);
-  // lc2.shutdown(1, false);
-  // lc2.shutdown(2, false);
-  // lc2.shutdown(3, false);
+  lc2.shutdown(0, false);
+  lc2.shutdown(1, false);
+  lc2.shutdown(2, false);
+  lc2.shutdown(3, false);
 
-  lc.setIntensity(0, 8);
-  lc.setIntensity(1, 8);
-  lc.setIntensity(2, 8);
-  lc.setIntensity(3, 8);
-  lc.clearDisplay(0);
+  lc1.setIntensity(0, 8);
+  lc1.setIntensity(1, 8);
+  lc1.setIntensity(2, 8);
+  lc1.setIntensity(3, 8);
+  lc1.clearDisplay(0);
+  
+  lc2.setIntensity(0, 8);
+  lc2.setIntensity(1, 8);
+  lc2.setIntensity(2, 8);
+  lc2.setIntensity(3, 8);
+  lc2.clearDisplay(0);
+
+
 
   // lc2.setIntensity(0, 8);
   // lc2.clearDisplay(0);
