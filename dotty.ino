@@ -7,10 +7,10 @@
 // Pin assignments for the MAX7219
 const int dataIn = 7;  // Data In
 const int clk = 6;     // Clock
-const int cs = 5;      // Chip Select
+const int cs1 = 5;      // Chip Select
 const int cs2 = 4;
 
-int initialDelay = 50;
+int initialDelay = 75;
 int _delay = initialDelay;
 int speedUpFactor = 5;
 
@@ -25,9 +25,11 @@ int P2Score = 0;
 #define JV2 A3
 
 // Create a new LedControl object
-LedControl lc1 = LedControl(dataIn, clk, cs, 4);  // (DataIn, CLK, CS, number of devices)
+LedControl lc1 = LedControl(dataIn, clk, cs1, 4);  // (DataIn, CLK, CS, number of devices)
 LedControl lc2 = LedControl(dataIn, clk, cs2, 4);
 
+// MD_Parola scrollDisplay1 = MD_Parola(MD_MAX72XX::FC16_HW , cs1 , 4); // MD_Parola display = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+// MD_Parola scrollDisplay2 = MD_Parola(MD_MAX72XX::FC16_HW , cs2 , 4);
 //                                          BALL INITIAL COORDINATES
 int x = 7;  // ROW
 int y = 0;  // COLUMN
@@ -40,11 +42,12 @@ String ballPath = "horizontal";
 const int paddleSize = 5;        
 int leftPaddleStartX = 5;     //  LEFT PADDLE'S INITIAL X (ROW) VALUE      
 int rightPaddleStartX = 5;   //  RIGHT PADDLE'S INITIAL X (ROW) VALUE
+
 void setup() {
   turnOnLeds();
   Serial.begin(9600);
   Serial.println("Start");
-  initialAnimation(50 , 3);
+  initialAnimation(25 , 3);
 }
 
 void loop() {
@@ -61,18 +64,21 @@ void loop() {
     checkPaddleHitPoint();
     
     //  CHECK IF POINT SCORED
-    bool pointUpdated = checkIfPointScored();
-    if (pointUpdated) {
+    String playerScored = checkIfPointScored();
+    if (playerScored != "") {
+      pointScoredAnimation(playerScored);
+      clearDisplay();
       _delay = initialDelay;
-      clearDisplay();
-      lightLED(matNum, x, y);
-      delay(2000);
-      clearDisplay();
       x = 7;
       y = 0;
       matNum = 1;
       ballPath = "horizontal";
+      lightLED(matNum,x,y);
+      delay(250);
+      makeBothPaddles();
+      delay(500);
     }
+
     if (hDirection == "right") {
       if (y < 0) {
         matNum = matNum + 1;
@@ -100,7 +106,6 @@ void loop() {
         moveRight(x,y);
       } 
     }
-
     else if (hDirection == "left") {
       if (y > 7) {
         matNum = matNum - 1;
@@ -109,7 +114,6 @@ void loop() {
       // if (y == 6 && matNum == 0) {
       //   hDirection = "right";
       // }
-
       if(x == 1) {
         vDirection = "up";
       }
@@ -128,7 +132,6 @@ void loop() {
       else {
         moveLeft(x,y);
       }
-      
     }
   }
 }
@@ -234,7 +237,7 @@ void moveRightBat(int H2) {
   }
 }
 
-bool checkIfPointScored() {
+String checkIfPointScored() {
   //P1 Score Update
   int temp1 = P1Score, temp2 = P2Score;
   if (matNum == 3 && y == 0 && (x < rightPaddleStartX || x >= rightPaddleStartX + paddleSize)) {
@@ -247,15 +250,14 @@ bool checkIfPointScored() {
   if (temp1 != P1Score) {
     Serial.println("Player 1 Score: ");
     Serial.println(P1Score);
-    return true;
+    return "Player 1";
   }
-
   if (temp2 != P2Score) {
     Serial.println("Player 2 Score: ");
     Serial.println(P2Score);
-    return true;
+    return "Player 2";
   }
-  return false;
+  return "";
 }
 
 void checkPaddleHitPoint() {
@@ -295,6 +297,55 @@ void checkPaddleHitPoint() {
       _delay -= speedUpFactor;
     }
   }
+}
+
+void pointScoredAnimation (String player) {
+  clearDisplay();
+  lightLED(matNum, x, y);
+  delay(1000);
+  clearDisplay();
+  
+  byte G1[8] = {B00111100 , B01000010 , B01000010 , B00000010,
+              B00110010 , B01000010 , B01000010 , B00111100};
+  byte O1[8] = {B00111100 , B01000010 , B01000010 , B01000010,
+                B01000010 , B01000010 , B01000010 , B00111100};
+  byte A1[8] = {B00011000 , B00100100 , B01000010 , B01000010,
+                B01111110 , B01000010 , B01000010 , B01000010};
+  byte L1[8] = {B00000010 , B00000010 , B00000010 , B00000010,
+                B00000010 , B00000010 , B00000010 , B01111110};
+  
+  byte G2[8] = {B00111100, B01000010, B01000010, B01001100,
+                B01000000, B01000010, B01000010, B00111100};
+  byte O2[8] = {B00111100, B01000010, B01000010, B01000010,
+                B01000010, B01000010, B01000010, B00111100};
+  byte A2[8] = {B01000010, B01000010, B01000010, B01111110,
+                B01000010, B01000010, B00100100, B00011000};
+  byte L2[8] = {B01111100, B01000000, B01000000, B01000000,
+                B01000000, B01000000, B01000000, B01000000};
+
+  for(int j = 1 ; j<=4 ; j++){
+    for (int i=0 ; i<8 ; i++) {
+      if (j == 1){
+        lc1.setColumn(3,i,G1[i]);
+        lc2.setColumn(0,i,G2[i]);
+      } 
+      if (j == 2){
+        lc1.setColumn(2,i,O1[i]);
+        lc2.setColumn(1,i,O2[i]);
+      }  
+      if (j == 3){
+        lc1.setColumn(1,i,A1[i]);
+        lc2.setColumn(2,i,A2[i]);
+      }
+      if (j == 4){
+        lc1.setColumn(0,i,L1[i]);
+        lc2.setColumn(3,i,L2[i]);
+      }
+    }
+    delay(250);
+  }
+        
+
 }
 
 void resetGame () {
